@@ -24,8 +24,11 @@ class DataBaseConnection{
         mongoose.connection.on("disconnecting", () => {
             console.log("MONGODB DISCONNECTING "); 
             this.isConnected = false;      
+            this.handleDisconnection()
         })   
-        // TODO : add reconnection for disconecting
+
+        process.on('SIGTERM', this.handleAppTermination.bind(this))
+
     }
 
     async connect(){
@@ -67,6 +70,43 @@ class DataBaseConnection{
             }, RETRY_INTERVAL))
 
             return this.connect() // Trying to reconnect
+        } else {
+            console.error(`Failed to Connect to Database after ${MAX_RETRIES} Attempts`)
+            process.exit(1)
+        }
+    }
+
+    async handleDisconnection() {
+         if(!this.isConnected === false) {
+            console.log("Attempting to reconnection to MongoDB....");
+            this.connect()
+         }
+    }
+
+    async handleAppTermination() {
+        try {
+            await mongoose.connection.close()
+            console.log("MongoDB connection closed through App Termination ");
+            process.exit(0)
+        } catch (error) {
+            console.error("Error during Databse disconnection", error);
+            process.exit(1)
+            
+        }
+    }
+
+    getConnectionStatus() {
+        return {
+            isConnected : this.isConnected,
+            readyState : mongoose.connection.readyState,
+            host : mongoose.connection.host,
+            name : mongoose.connection.name    
         }
     }
 }
+
+// create singleton instance
+const dbConnection = new DataBaseConnection();
+
+export default dbConnection.connect.bind(dbConnection)
+export const getgetDBStatus = dbConnection.getConnectionStatus.bind(dbConnection)

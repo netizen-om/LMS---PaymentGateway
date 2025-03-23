@@ -1,3 +1,4 @@
+// TODO : LEARN about Bind, call and apply in JS 
 import dotenv from "dotenv"
 import morgan from "morgan"
 import rateLimit from "express-rate-limit"

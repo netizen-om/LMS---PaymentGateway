@@ -29,25 +29,44 @@ class DataBaseConnection{
     }
 
     async connect(){
-        if(!process.env.MONGO_URI) {
-            throw new Error("MongoDB URI is not defined in env variables")
+        try {
+            if(!process.env.MONGO_URI) {
+                throw new Error("MongoDB URI is not defined in env variables")
+            }
+    
+            const connectionOptions = {
+                useNewUrlParser : true,
+                useUnifiedTopology : true,
+                maxPoolSize : 10,
+                serverSelectionTimeoutMS : 5000,
+                socketTimeoutMS : 45000,
+                family : 4 //it specify IP version to use. In this case IPv4   
+            } ;
+    
+            if(process.env.NODE_ENV === "development") {
+                mongoose.set('debug', true)
+            }
+    
+            await mongoose.connect(process.env.MONGO_URI, connectionOptions);
+            this.retryCount = 0; // If we are at this point, the connection is successfull (Reset retryCount on connection).
+        } catch (error) {
+            console.error(error.message)
+            await this.handleConnectionError()
         }
 
-        const connectionOptions = {
-            useNewUrlParser : true,
-            useUnifiedTopology : true,
-            maxPoolSize : 10,
-            serverSelectionTimeoutMS : 5000,
-            socketTimeoutMS : 45000,
-            family : 4 //it specify IP version to use. In this case IPv4   
-        } ;
+    }
 
-        if(process.env.NODE_ENV === "development") {
-            mongoose.set('debug', true)
+    async handleConnectionError() {
+        if(this.retryCount < MAX_RETRIES) {
+            this.retryCount++;
+            console.log(`Retrying Connection.... Attempt ${this.retryCount} of ${MAX_RETRIES}`);
+
+            // waiting for 5 sec
+            await new Promise(resolve => setTimeout(() => {
+                resolve
+            }, RETRY_INTERVAL))
+
+            return this.connect() // Trying to reconnect
         }
-
-        await mongoose.connect(process.env.MONGO_URI, connectionOptions);
-        this.retryCount = 0; // If we are at this point, the connection is successfull (Reset retryCount on connection).
-        
     }
 }

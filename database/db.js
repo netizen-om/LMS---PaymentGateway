@@ -109,4 +109,4 @@ class DataBaseConnection{
 const dbConnection = new DataBaseConnection();
 
 export default dbConnection.connect.bind(dbConnection)
-export const getgetDBStatus = dbConnection.getConnectionStatus.bind(dbConnection)
+export const getgetDBStatus = dbConnection.getConnectionStatus.bind(dbConnection)   

@@ -94,5 +94,15 @@ userSchema.methods.getResetPasswordToken = function() {
         this.resetPasswordExpire = Date.now() + 10 * 60 * 1000
 }
 
+userSchema.methods.updateLastActive = async function() {
+    this.lastActive = Date.now()
+    return this.save({ validateBeforeSave: false });
+}
+
+// virtual field for total enrolled courses
+userSchema.virtual("totalEnrolledCourses").get(function() {
+    return this.enrolledCourses.length
+})
+
 export const User = mongoose.model('User', userSchema)
 

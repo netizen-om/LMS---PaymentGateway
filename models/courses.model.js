@@ -80,6 +80,8 @@ courseSchema.pre('save', function(next) {
     if(this.lectures) {
         this.totalLecture = this.lectures.length
     }
+
+    next()
 })
 
 export const Course = mongoose.model("Course", courseSchema) 

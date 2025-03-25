@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const curseSchema = new mongoose.Schema({
+const courseSchema = new mongoose.Schema({
     title : {
         type : String,
         required : [true, "Course title is required"],
@@ -62,5 +62,24 @@ const curseSchema = new mongoose.Schema({
     totalDuration : {
         type : Number,
         default : 0 
+    },
+    totalLecture : {
+
+    }
+}, {
+    timestamps : true,
+    toJSON : { virtuals : true },
+    toObject : { virtuals : true }, 
+})
+
+courseSchema.virtual("averageRating").get(function() {
+    return 0; //placeholder assignment, Have to add averate rating
+})
+
+courseSchema.pre('save', function(next) {
+    if(this.lectures) {
+        this.totalLecture = this.lectures.length
     }
 })
+
+export const Course = mongoose.model("Course", courseSchema) 

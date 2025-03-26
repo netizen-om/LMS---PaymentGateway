@@ -76,3 +76,5 @@ coursePurchaseSchema.methods.processRefund = async function(reason,amount) {
 
     return this.save({ validateBeforeSave: false });
 } 
+
+export const CoursePurchase = mongoose.model("CoursePurchase", coursePurchaseSchema)

@@ -61,3 +61,18 @@ const coursePurchaseSchema = new mongoose.Schema({
 coursePurchaseSchema.index({user : 1, course : 1})
 coursePurchaseSchema.index({status : 1})
 coursePurchaseSchema.index({createdAt : -1})
+
+coursePurchaseSchema.virtual('isRefundable').get(function() {
+    if(this.status !== "completed") return false;
+    const thirtyDayPeriod = new Date(Date.now() - (1000 * 60 * 60 * 24 * 30))
+    return this.createdAt > thirtyDayPeriod
+})
+
+// method to add refund
+coursePurchaseSchema.methods.processRefund = async function(reason,amount) {
+    this.refundReason = reason
+    this.status = "refunded"
+    this.refundAmount = amount || this.amount
+
+    return this.save({ validateBeforeSave: false });
+} 

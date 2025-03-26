@@ -57,3 +57,7 @@ const coursePurchaseSchema = new mongoose.Schema({
     toJSON:{virtuals:true},
     toObject:{virtuals:true}
 });
+
+coursePurchaseSchema.index({user : 1, course : 1})
+coursePurchaseSchema.index({status : 1})
+coursePurchaseSchema.index({createdAt : -1})

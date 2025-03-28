@@ -1,5 +1,12 @@
+import { getDBStatus } from "../database/db"
+
  
- 
+ export const checkHealth = async(req, res) => {
+    getDBStatus();
+ }
+
+
+
  // This is just small utility function That take number insted of string from fronted
  function getReadyStateText(state) {
     switch (state) {

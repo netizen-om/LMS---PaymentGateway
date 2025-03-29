@@ -9,7 +9,7 @@ export const isAuthenticated = catchAsync(async (req,res,next) => {
     
     try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY)
-        req._id = decoded.userId
+        req.id = decoded.userId
         next()
     } catch (error) {
         throw new ApiError("JWT Token error", 401)

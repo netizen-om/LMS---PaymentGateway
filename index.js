@@ -8,6 +8,7 @@ import helmet from "helmet"
 import hpp from "hpp"
 import cookieParser from "cookie-parser"
 import cors from "cors"
+import healthRoute from "./routes/health.routes.js"
 
 dotenv.config()
 const app = express()
@@ -67,6 +68,7 @@ app.use((err, req, res, next) => {
         })   
 }) 
 
+app.use("/health", healthRoute)
 
 
 app.get('/', (req, res) => {

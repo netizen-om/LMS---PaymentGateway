@@ -9,6 +9,8 @@ import hpp from "hpp"
 import cookieParser from "cookie-parser"
 import cors from "cors"
 import healthRoute from "./routes/health.routes.js"
+import userRoute from "./routes/user.routes.js"
+
 
 dotenv.config()
 const app = express()
@@ -68,7 +70,9 @@ app.use((err, req, res, next) => {
         })   
 }) 
 
+// API Routes
 app.use("/health", healthRoute)
+app.use("/api/v1/user", userRoute)
 
 
 app.get('/', (req, res) => {

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
 import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
 import { catchAsync } from "../middleware/error.middleware.js";
-import { AppError } from "../middleware/error.middleware.js";
+import { ApiError } from "../middleware/error.middleware.js";
 import crypto from "crypto";
 
 /**
@@ -16,7 +16,7 @@ export const createUserAccount = catchAsync(async (req, res) => {
 
   const isExistedUser = await User.findOne({ email : email.toLowerCase() })
   if(isExistedUser) {
-    AppError("User Already Existed", 400);
+    ApiError("User Already Existed", 400);
   }
 
   const user = await User.create({
@@ -44,14 +44,14 @@ export const authenticateUser = catchAsync(async (req, res) => {
   console.log(user);
   
   if(!user) {
-    throw new AppError("User does not exist", 400)
+    throw new ApiError("User does not exist", 400)
   }
   
   let iscorrectPassword = await user.comparePassword(password)
   console.log(iscorrectPassword);
   
   if(!iscorrectPassword) {
-    throw new AppError("Invalid Credentials", 400)
+    throw new ApiError("Invalid Credentials", 400)
   }
   
   await user.updateLastActive()
@@ -77,13 +77,13 @@ export const signOutUser = catchAsync(async (_, res) => {
 */
 export const getCurrentUserProfile = catchAsync(async (req, res) => {
   // TODO: Implement get current user profile functionality
-  const user = User.findById(req.id).populate({
+  const user = await User.findById(req.id).populate({
     path : "enrolledCourses.course",
     select : "title thumbnail description"
   });
   
   if(!user) {
-    throw new AppError("User does not exist", 400)
+    throw new ApiError("User does not exist", 400)
   }
 
   res.status(200).json({
@@ -102,7 +102,40 @@ export const getCurrentUserProfile = catchAsync(async (req, res) => {
  */
 export const updateUserProfile = catchAsync(async (req, res) => {
   // TODO: Implement update user profile functionality
+
+  const { name, email, bio } = req.body;
+  const updateData = {
+    name, email : email.toLowerCase(), bio 
+  }
   
+  if(req.file) {
+    const avatarResult = await uploadMedia(req.file.path)
+    updateData.avatar = avatarResult.secure_url
+
+    //deleting old avatar
+    const user = await User.findById(req.id)
+    if(user.avatar &&   user.avatar !== "default-avatar.png") {
+        await deleteMediaFromCloudinary(user.avatar)
+    }
+  }
+
+  // update user 
+  const updatedUser = await User.findByIdAndUpdate(req.id, updateData, {
+    new : true , runValidators : true
+  })
+  
+  if(!updatedUser) {
+    throw new ApiError("User not found", 400)
+  }
+
+
+
+  res.status(200).json({
+    success : true,
+    message : "Profile updated successfully",
+    data : updatedUser
+  })
+
 });
 
 /**
@@ -114,13 +147,13 @@ export const changeUserPassword = catchAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if(!currentPassword || !newPassword) {
-    throw new AppError("All fields are required", 400)
+    throw new ApiError("All fields are required", 400)
   }
   
   const user = await User.findById(req.id).select("+password")
   
   if(!(user.comparePassword(currentPassword))){
-    throw new AppError("Incorrect Password", 400)
+    throw new ApiError("Incorrect Password", 400)
   }
 
   user.password = newPassword

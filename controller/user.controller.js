@@ -128,8 +128,6 @@ export const updateUserProfile = catchAsync(async (req, res) => {
     throw new ApiError("User not found", 400)
   }
 
-
-
   res.status(200).json({
     success : true,
     message : "Profile updated successfully",
